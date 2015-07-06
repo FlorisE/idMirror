@@ -346,6 +346,13 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
         }
     }
 
+    /*public boolean inSquare(float needleX, float needleY, float haystackTL, float haystackBL, float haystackTR, float haystackBR) {
+        1f - bufferCenterX >= pTexCoord.get(1) &&
+                1f - bufferCenterX <= pTexCoord.get(3) &&
+                bufferCenterY >= pTexCoord.get(0) &&
+                bufferCenterY <= pTexCoord.get(4)
+    }*/
+
     @Override
     public void onFaceDetection(Camera.Face[] faces, Camera camera) {
         if (faces.length > 0) {
