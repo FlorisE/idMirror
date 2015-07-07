@@ -1,6 +1,5 @@
 package tsukuba.emp.mirrorgl;
 
-import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
@@ -73,28 +72,22 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
 
     private Rect faceRect;
 
-    private int texture;
-
-    private ArrayList<Table> tables = new ArrayList<>();
-
     private Random rand = new Random();
 
     private long faceStart = 0;
     private long faceCurrent = 0;
 
+    private float originX = 0;
+    private float originY = 0;
+    private float radiusHorizontal = 0;
+    private float radiusVertical = 0;
+
     public SpaceEffectRenderer(CameraSurfaceView cameraSurfaceView)
     {
         this.cameraSurfaceView = cameraSurfaceView;
 
-        // vertice coordinates
-        List<Float[]> vertices = new ArrayList<>();
-
         // texture coordinates
-        //float[] ttmp = { 0.0f, 1.0f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, 0.0f };
         float[] ttmp = { 0.0f, 0.0f, 0.0f, 1.0f, 1.0f, 0.0f, 1.0f, 1.0f };
-
-        // face coordinates
-        float[] ftmp = { 0.0f, 0.0f };
 
         for (int i = 1; i <= rows; i++) {
             for (int j = 1; j <= columns; j++) {
@@ -185,7 +178,6 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
             if ( i > 0 )
                 i--;
             param.setPreviewSize(psize.get(i).width, psize.get(i).height);
-            //Log.i("mr","ssize: "+psize.get(i).width+", "+psize.get(i).height);
         }
         param.set("orientation", "portrait");
         mCamera.setParameters(param);
@@ -281,29 +273,13 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
             glUniform1i(th, 0);
 
             FloatBuffer buffer = verticeBuffers.get(i);
-            float leftX = buffer.get(0);
-            float leftY = buffer.get(1);
             // buffer: brX, brY, blX, blY, trX, trY, tlX, tlY
             // pTexCoord: left, bottom, left, bottom + height, left + width, bottom, left + width, bottom + height
 
-            float width = pTexCoord.get(4) - pTexCoord.get(0);
-            float height = pTexCoord.get(3) - pTexCoord.get(1);
-            float centerX = pTexCoord.get(4) - width/2;
-            float centerY = pTexCoord.get(3) - height/2;
-
             float bufferWidth = buffer.get(0) - buffer.get(2);
             float bufferHeight = buffer.get(5) - buffer.get(1);
-            float bufferCenterX = ((buffer.get(0) - bufferWidth/2) + 1) / 2;
-            float bufferCenterY = ((buffer.get(5) - bufferHeight/2) + 1) / 2;
 
-            if (1f - bufferCenterX >= pTexCoord.get(1) &&
-                1f - bufferCenterX <= pTexCoord.get(3) &&
-                bufferCenterY >= pTexCoord.get(0) &&
-                bufferCenterY <= pTexCoord.get(4) &&
-                faceStart != 0) {
-
-                float randFloat = rand.nextFloat() / 1000;
-                float randFloat2 = rand.nextFloat() / 1000;
+            if (inEllipse(buffer.get(5) - bufferHeight/2, -1f * (buffer.get(0) - bufferWidth/2), originX, originY, radiusHorizontal, radiusVertical) && faceStart != 0) {
 
                 addToggle = !addToggle;
 
@@ -326,12 +302,13 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
         }
     }
 
-    /*public boolean inSquare(float needleX, float needleY, float haystackTL, float haystackBL, float haystackTR, float haystackBR) {
-        1f - bufferCenterX >= pTexCoord.get(1) &&
-                1f - bufferCenterX <= pTexCoord.get(3) &&
-                bufferCenterY >= pTexCoord.get(0) &&
-                bufferCenterY <= pTexCoord.get(4)
-    }*/
+    public boolean inSquare(float pointX, float pointY, float left, float right, float top, float bottom) {
+        return pointX >= left && pointX <= right && pointY >= bottom && pointY <= top;
+    }
+
+    public boolean inEllipse(float pointX, float pointY, float originX, float originY, float xRadius, float yRadius) {
+        return ((Math.pow(pointX - originX, 2)/Math.pow(xRadius, 2)) + (Math.pow(pointY - originY, 2)/Math.pow(yRadius, 2)) <= 1);
+    }
 
     @Override
     public void onFaceDetection(Camera.Face[] faces, Camera camera) {
@@ -342,6 +319,11 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
                 faceStart = faceCurrent;
 
             faceRect = faces[0].rect;
+
+            originX = faceRect.exactCenterX() / 1000f;
+            originY = faceRect.exactCenterY() / 1000f;
+            radiusHorizontal = faceRect.width() / 2000f;
+            radiusVertical = faceRect.height() / 2000f;
 
             float left = ((faceRect.left / 1000f) + 1f) / 2;
             float bottom = ((faceRect.top / 1000f) + 1f) / 2;
