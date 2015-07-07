@@ -43,11 +43,7 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
         "precision mediump float;\n" +
         "uniform samplerExternalOES sTexture;\n" +
         "varying vec2 texCoord;\n" +
-        "uniform vec2 faceCoordTL;\n" +
-        "uniform vec2 faceCoordBR;\n" +
         "void main() {\n" +
-        //"  if ( texCoord.x < faceCoordTL.x) { gl_FragColor = texture2D(sTexture,texCoord); }\n" +
-        //"  else { gl_FragColor = texture2D(sTexture,texCoord); }\n" +
         "    gl_FragColor = texture2D(sTexture,texCoord);\n" +
         "}";
 
@@ -60,8 +56,6 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
      * The coordinates of the face inside a texture based on camera capture
      */
     private FloatBuffer pTexCoord;
-    private FloatBuffer pFaceCoordTL;
-    private FloatBuffer pFaceCoordBR;
     private List<Integer> programs = new ArrayList<>();
 
     private final int rows = 32;
@@ -87,8 +81,6 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
 
     private long faceStart = 0;
     private long faceCurrent = 0;
-
-    private float[] originalBuffer = new float[8];
 
     public SpaceEffectRenderer(CameraSurfaceView cameraSurfaceView)
     {
@@ -134,12 +126,6 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
         pTexCoord = ByteBuffer.allocateDirect(8*4).order(ByteOrder.nativeOrder()).asFloatBuffer();
         pTexCoord.put(ttmp);
         pTexCoord.position(0);
-        pFaceCoordTL = ByteBuffer.allocateDirect(2*4).order(ByteOrder.nativeOrder()).asFloatBuffer();
-        pFaceCoordTL.put(ftmp);
-        pFaceCoordTL.position(0);
-        pFaceCoordBR = ByteBuffer.allocateDirect(2*4).order(ByteOrder.nativeOrder()).asFloatBuffer();
-        pFaceCoordBR.put(ftmp);
-        pFaceCoordBR.position(0);
     }
 
     public void close()
@@ -289,8 +275,6 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
             int ph = glGetAttribLocation(hProgram, "vPosition");
             int tch = glGetAttribLocation(hProgram, "vTexCoord");
             int th = glGetUniformLocation(hProgram, "sTexture");
-            int fctl = glGetUniformLocation(hProgram, "faceCoordTL");
-            int tcbr = glGetUniformLocation(hProgram, "faceCoordBR");
 
             glActiveTexture(GL_TEXTURE0);
             glBindTexture(GLES11Ext.GL_TEXTURE_EXTERNAL_OES, hTex[0]);
@@ -335,10 +319,6 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
                 glVertexAttribPointer(tch, 2, GL_FLOAT, false, 4 * 2, pTexCoord);
                 glEnableVertexAttribArray(ph);
                 glEnableVertexAttribArray(tch);
-                glVertexAttribPointer(fctl, 2, GL_FLOAT, false, 4 * 2, pFaceCoordTL);
-                glVertexAttribPointer(tcbr, 2, GL_FLOAT, false, 4 * 2, pFaceCoordBR);
-                glEnableVertexAttribArray(fctl);
-                glEnableVertexAttribArray(tcbr);
 
                 glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
             }
