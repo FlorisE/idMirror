@@ -50,6 +50,7 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
 
     private List<FloatBuffer> originalVerticeBuffers = new ArrayList<>();
     private List<FloatBuffer> verticeBuffers = new ArrayList<>();
+    private List<FloatBuffer> textureBuffers = new ArrayList<>();
 
     /**
      * The coordinates of the face inside a texture based on camera capture
@@ -110,9 +111,14 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
                 originalVerticeBuffers.add(buffer2);
                 verticeBuffers.add(buffer);
                 buffer.put(new float[]{brX, brY, blX, blY, trX, trY, tlX, tlY});
-                buffer2.put(new float[]{ brX, brY, blX, blY, trX, trY, tlX, tlY });
+                buffer2.put(new float[]{brX, brY, blX, blY, trX, trY, tlX, tlY});
                 buffer.position(0);
                 buffer2.position(0);
+
+                FloatBuffer texCoords = ByteBuffer.allocateDirect(8*4).order(ByteOrder.nativeOrder()).asFloatBuffer();
+                textureBuffers.add(texCoords);
+                texCoords.put(buffer2);
+                texCoords.position(0);
             }
         }
 
@@ -292,7 +298,7 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
 
 
                 glVertexAttribPointer(ph, 2, GL_FLOAT, false, 4 * 2, buffer);
-                glVertexAttribPointer(tch, 2, GL_FLOAT, false, 4 * 2, pTexCoord);
+                glVertexAttribPointer(tch, 2, GL_FLOAT, false, 4 * 2, textureBuffers.get(i));
                 glEnableVertexAttribArray(ph);
                 glEnableVertexAttribArray(tch);
 
@@ -334,6 +340,46 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
 
             pTexCoord.put(ttmp);
             pTexCoord.position(0);
+
+            int count = -1;
+
+            int iStart = -1;
+            int jStart = -1;
+            int iEnd = -1;
+            int jEnd = -1;
+
+            for (int i = 1; i < rows; i++) {
+                count++;
+
+                float particleBottom = bottom + ((float) i / rows) * height;
+                float particleTop = particleBottom + height / rows;
+
+                if (iStart == -1) {
+                    if (!inEllipse(particleBottom + (particleTop - particleBottom) / 2, originY, originX, originY, radiusHorizontal, radiusVertical))
+                        continue;
+
+                    iStart = i;
+                }
+
+                for (int j = columns; j > 0; j--) {
+
+                    float particleLeft = left + ((float) j / columns) * width;
+                    float particleRight = particleLeft + width / columns;
+
+                    if (jStart == -1) {
+                        if (!inEllipse(originX, particleLeft + (particleRight - particleLeft) / 2, originX, originY, radiusHorizontal, radiusVertical))
+                            continue;
+
+
+                    }
+
+                    FloatBuffer buffer = textureBuffers.get(count);
+                    buffer.put(new float[]{particleLeft, particleBottom, particleLeft, particleTop, particleRight, particleBottom, particleRight, particleTop});
+                    buffer.position(0);
+
+                }
+            }
+
         }
     }
 }
