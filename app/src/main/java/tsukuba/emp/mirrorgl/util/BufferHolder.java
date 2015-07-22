@@ -11,6 +11,8 @@ import java.util.List;
 
 import tsukuba.emp.mirrorgl.programs.MirrorGridShaderProgram;
 
+import static android.opengl.GLES20.glViewport;
+
 public class BufferHolder {
 
     private long faceStart = 0;
@@ -24,6 +26,9 @@ public class BufferHolder {
 
     private final int rows = 32;
     private final int columns = 32;
+
+    private Rect faceRect = null;
+    private boolean faceUpdate = false;
 
     public BufferHolder() {
         for (int i = 1; i <= rows; i++)
@@ -79,6 +84,13 @@ public class BufferHolder {
     }
 
     public void renderToPrograms(List<MirrorGridShaderProgram> programs, int tex) {
+        if (!faceUpdate) {
+            return;
+        } else {
+            faceUpdate = false;
+        }
+
+
         for (int i = 0; i < verticeBufferCells.size(); i++) {
             MirrorGridShaderProgram hProgram = programs.get(i);
             VerticeBufferCell bufferCell = verticeBufferCells.get(i);
@@ -88,16 +100,12 @@ public class BufferHolder {
 
     public void updateBuffers(Camera.Face[] faces) {
         faceCurrent = System.currentTimeMillis();
+        faceUpdate = true;
 
         if (faceStart == 0)
             faceStart = faceCurrent;
 
-        Rect faceRect = faces[0].rect;
-
-        float originX = faceRect.exactCenterX() / 1000f;
-        float originY = faceRect.exactCenterY() / 1000f;
-        float radiusHorizontal = faceRect.width() / 2000f;
-        float radiusVertical = faceRect.height() / 2000f;
+        faceRect = faces[0].rect;
 
         float left = ((faceRect.left / 1000f) + 1f) / 2;
         float bottom = ((faceRect.top / 1000f) + 1f) / 2;
@@ -134,9 +142,6 @@ public class BufferHolder {
 
         int count = -1;
 
-        int numColsDrawn = hEnd - hStart;
-        int numRowsDrawn = vEnd - vStart;
-
         for (int i = 1; i <= rows; i++) {
             float particleBottom = bottom + ((float) i / rows) * height;
             float particleTop = particleBottom + height / rows;
@@ -156,5 +161,38 @@ public class BufferHolder {
 
     public boolean inEllipse(float pointX, float pointY, float originX, float originY, float xRadius, float yRadius) {
         return ((Math.pow(pointX - originX, 2)/Math.pow(xRadius, 2)) + (Math.pow(pointY - originY, 2)/Math.pow(yRadius, 2)) <= 1);
+    }
+
+    public void setViewPort(int width, int height) {
+
+        if (faceRect != null) {
+            float faceWidthScale = (14.8f / 27f);
+            float faceHeightScale = (22.5f / 36f);
+
+            // because the image is rotated 90 degrees and mirrored, left = bottom and bottom = left
+            float leftScaled = (faceRect.bottom + 1000f) / 2f;
+            float bottomScaled = (faceRect.left + 1000f) / 2f;
+
+            // because of image rotation, width = height and height = width
+            float widthScaled = faceRect.height()/ 2f;
+            float heightScaled = faceRect.width()/ 2f;
+
+            // because of image rotation, center x = center y and center y = center x
+            float centerXScaled = (-1 * faceRect.centerY() + 1000) / 2f;
+            float centerYScaled = (faceRect.centerX() + 1000) / 2f;
+
+            int vpWidth = Math.round((widthScaled * width) / 1000);
+            int vpHeight = Math.round((heightScaled * height) / 1000);
+
+            int viewPortWidth = Math.round(faceWidthScale * width);
+            int viewPortHeight = Math.round(faceHeightScale * height);
+
+            int x = Math.round(centerXScaled * (width/1000f) - viewPortWidth/2);
+            int y = Math.round(2 * centerYScaled * (height/1000f) - viewPortHeight/2);
+
+            glViewport(x, y, viewPortWidth, viewPortHeight);
+        } else {
+            glViewport(0, 0, width, height);
+        }
     }
 }

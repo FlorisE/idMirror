@@ -39,6 +39,9 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
 
     private boolean mUpdateST = false;
 
+    private int width = 0;
+    private int height = 0;
+
     /**
      * The context with which the renderer should interact
      */
@@ -85,7 +88,9 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
-        glViewport(0, 0, width, height);
+        glViewport(0, 0, width/2, height/2);
+        this.width = width;
+        this.height = height;
 
         mCameraHolder.setParameters(width, height);
 
@@ -114,6 +119,8 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
     @Override
     public void onDrawFrame(GL10 gl) {
         glClear( GL_COLOR_BUFFER_BIT );
+
+        mBufferHolder.setViewPort(width, height);
 
         synchronized(this) {
             if ( mUpdateST ) {
