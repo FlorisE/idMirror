@@ -1,15 +1,10 @@
 package tsukuba.emp.mirrorgl;
 
-import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.opengl.GLES11Ext;
 import android.opengl.GLSurfaceView;
 
-import java.io.IOException;
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,7 +15,6 @@ import tsukuba.emp.mirrorgl.programs.MirrorGridShaderProgram;
 import tsukuba.emp.mirrorgl.util.BufferHolder;
 import tsukuba.emp.mirrorgl.util.CameraHolder;
 import tsukuba.emp.mirrorgl.util.CameraSurfaceView;
-import tsukuba.emp.mirrorgl.util.VerticeBufferCell;
 
 import static android.opengl.GLES20.*;
 

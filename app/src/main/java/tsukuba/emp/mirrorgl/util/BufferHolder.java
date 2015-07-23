@@ -8,6 +8,7 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import tsukuba.emp.mirrorgl.programs.MirrorGridShaderProgram;
 
@@ -28,7 +29,6 @@ public class BufferHolder {
     private final int columns = 32;
 
     private Rect faceRect = null;
-    private boolean faceUpdate = false;
 
     public BufferHolder() {
         for (int i = 1; i <= rows; i++)
@@ -84,13 +84,6 @@ public class BufferHolder {
     }
 
     public void renderToPrograms(List<MirrorGridShaderProgram> programs, int tex) {
-        if (!faceUpdate) {
-            return;
-        } else {
-            faceUpdate = false;
-        }
-
-
         for (int i = 0; i < verticeBufferCells.size(); i++) {
             MirrorGridShaderProgram hProgram = programs.get(i);
             VerticeBufferCell bufferCell = verticeBufferCells.get(i);
@@ -100,7 +93,6 @@ public class BufferHolder {
 
     public void updateBuffers(Camera.Face[] faces) {
         faceCurrent = System.currentTimeMillis();
-        faceUpdate = true;
 
         if (faceStart == 0)
             faceStart = faceCurrent;
@@ -124,7 +116,7 @@ public class BufferHolder {
             float bufferWidth = buffer.get(0) - buffer.get(2);
             float bufferHeight = buffer.get(5) - buffer.get(1);
 
-            bufferCell.setDrawn(false);
+            //bufferCell.setDrawn(false);
 
             if (inEllipse(buffer.get(5) - bufferHeight/2, -1f * (buffer.get(0) - bufferWidth/2), 0f, 0f, 1f, 1f)) {
                 int horizontalIndex = bufferCell.getHorizontalIndex();

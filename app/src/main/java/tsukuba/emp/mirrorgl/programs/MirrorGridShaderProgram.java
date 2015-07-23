@@ -52,9 +52,9 @@ public class MirrorGridShaderProgram extends ShaderProgram {
         if (bufferCell.getDrawn() && faceStart != 0) {
             for (int j = 0; j < 8; j++) {
                 if (rand.nextBoolean())
-                    buffer.put(j, buffer.get(j) + rand.nextFloat() / 1000);
+                    buffer.put(j, buffer.get(j) + rand.nextFloat() / 250);
                 else
-                    buffer.put(j, buffer.get(j) - rand.nextFloat() / 1000);
+                    buffer.put(j, buffer.get(j) - rand.nextFloat() / 250);
             }
 
             glVertexAttribPointer(ph, 2, GL_FLOAT, false, 4 * 2, buffer);
