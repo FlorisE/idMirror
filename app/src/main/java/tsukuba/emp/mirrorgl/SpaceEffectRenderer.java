@@ -4,6 +4,7 @@ import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.opengl.GLES11Ext;
 import android.opengl.GLSurfaceView;
+import android.opengl.Matrix;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -35,6 +36,10 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
 
     private int width = 0;
     private int height = 0;
+
+    private final float[] mMVPMatrix = new float[16];
+    private final float[] mProjectionMatrix = new float[16];
+    private final float[] mViewMatrix = new float[16];
 
     /**
      * The context with which the renderer should interact
@@ -82,13 +87,19 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
 
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
-        glViewport(0, 0, width/2, height/2);
+        glViewport(0, 0, width, height);
         this.width = width;
         this.height = height;
 
         mCameraHolder.setParameters(width, height);
 
         mCameraHolder.surfaceChanged();
+
+        float ratio = (float) width / height;
+
+        // this projection matrix is applied to object coordinates
+        // in the onDrawFrame() method
+        Matrix.frustumM(mProjectionMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
     }
 
     private void initTex() {
@@ -125,7 +136,15 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
 
         mBufferHolder.resetBuffers();
 
-        mBufferHolder.renderToPrograms(programs, hTex[0]);
+        // Set the camera position (View matrix)
+        Matrix.setLookAtM(mViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
+
+        // Calculate the projection and view transformation
+        Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
+
+        mBufferHolder.renderToPrograms(programs, hTex[0], mMVPMatrix);
+
+
     }
 
     @Override

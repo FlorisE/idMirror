@@ -23,8 +23,9 @@ public class ShaderProgram {
                 TextResourceReader.readTextFileFromResource(
                         context, fragmentShaderResourceId));
     }
-    public void useProgram() {
+    public int useProgram() {
         // Set the current OpenGL shader program to this program.
         glUseProgram(program);
+        return program;
     }
 }

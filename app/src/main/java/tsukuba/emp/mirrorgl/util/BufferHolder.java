@@ -25,19 +25,16 @@ public class BufferHolder {
 
     private List<VerticeBufferCell> verticeBufferCells = new ArrayList<>();
 
-    private final int rows = 32;
-    private final int columns = 32;
-
     private Rect faceRect = null;
 
     public BufferHolder() {
-        for (int i = 1; i <= rows; i++)
-            for (int j = 1; j <= columns; j++) {
-                float width = (1f / rows) * 2f;
-                float height = (1f / columns) * 2f;
+        for (int i = 1; i <= Constants.BUFFER_NN; i++)
+            for (int j = 1; j <= Constants.BUFFER_NN; j++) {
+                float width = (1f / Constants.BUFFER_NN) * 2f;
+                float height = (1f / Constants.BUFFER_NN) * 2f;
 
-                float blX = 1.0f - ((float) i / columns) * 2f;
-                float blY = 1.0f - ((float) j / rows) * 2f;
+                float blX = 1.0f - ((float) i / Constants.BUFFER_NN) * 2f;
+                float blY = 1.0f - ((float) j / Constants.BUFFER_NN) * 2f;
                 float brX = blX + width;
                 float trY = blY + height;
 
@@ -62,15 +59,15 @@ public class BufferHolder {
     }
 
     public int getRows() {
-        return rows;
+        return Constants.BUFFER_NN;
     }
 
     public int getColumns() {
-        return columns;
+        return Constants.BUFFER_NN;
     }
 
     public void resetBuffers() {
-        if (System.currentTimeMillis() > faceCurrent + 5000) {
+        if (System.currentTimeMillis() > faceCurrent + 2000) {
             faceStart = 0;
         }
 
@@ -83,11 +80,11 @@ public class BufferHolder {
         }
     }
 
-    public void renderToPrograms(List<MirrorGridShaderProgram> programs, int tex) {
+    public void renderToPrograms(List<MirrorGridShaderProgram> programs, int tex, float[] mMVPMatrix) {
         for (int i = 0; i < verticeBufferCells.size(); i++) {
             MirrorGridShaderProgram hProgram = programs.get(i);
             VerticeBufferCell bufferCell = verticeBufferCells.get(i);
-            hProgram.render(bufferCell, tex, faceStart,  textureBuffers.get(rows * (bufferCell.getHorizontalIndex()) + (bufferCell.getVerticalIndex())));
+            hProgram.render(bufferCell, tex, faceStart,  textureBuffers.get(Constants.BUFFER_NN * (bufferCell.getHorizontalIndex()) + (bufferCell.getVerticalIndex())));
         }
     }
 
@@ -134,15 +131,15 @@ public class BufferHolder {
 
         int count = -1;
 
-        for (int i = 1; i <= rows; i++) {
-            float particleBottom = bottom + ((float) i / rows) * height;
-            float particleTop = particleBottom + height / rows;
+        for (int i = 1; i <= Constants.BUFFER_NN; i++) {
+            float particleBottom = bottom + ((float) i / Constants.BUFFER_NN) * height;
+            float particleTop = particleBottom + height / Constants.BUFFER_NN;
 
-            for (int j = columns; j > 0; j--) {
+            for (int j = Constants.BUFFER_NN; j > 0; j--) {
                 count++;
 
-                float particleLeft = left + ((float) j / columns) * width;
-                float particleRight = particleLeft + width / columns;
+                float particleLeft = left + ((float) j / Constants.BUFFER_NN) * width;
+                float particleRight = particleLeft + width / Constants.BUFFER_NN;
 
                 FloatBuffer buffer = textureBuffers.get(count);
                 buffer.put(new float[]{particleLeft, particleBottom, particleLeft, particleTop, particleRight, particleBottom, particleRight, particleTop});
@@ -157,9 +154,9 @@ public class BufferHolder {
 
     public void setViewPort(int width, int height) {
 
-        if (faceRect != null) {
-            float faceWidthScale = (14.8f / 27f);
-            float faceHeightScale = (22.5f / 36f);
+        /*if (faceRect != null) {
+            float faceWidthScale = (14.8f / 27f) * 1.5f;
+            float faceHeightScale = (22.5f / 36f) * 1.5f;
 
             // because the image is rotated 90 degrees and mirrored, left = bottom and bottom = left
             float leftScaled = (faceRect.bottom + 1000f) / 2f;
@@ -183,8 +180,8 @@ public class BufferHolder {
             int y = Math.round(2 * centerYScaled * (height/1000f) - viewPortHeight/2);
 
             glViewport(x, y, viewPortWidth, viewPortHeight);
-        } else {
-            glViewport(0, 0, width, height);
-        }
+        } else {*/
+        //glViewport(0, 0, width, height);
+        //}
     }
 }
