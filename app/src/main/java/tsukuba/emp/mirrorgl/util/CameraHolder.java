@@ -1,16 +1,27 @@
 package tsukuba.emp.mirrorgl.util;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Matrix;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.List;
 
 import tsukuba.emp.mirrorgl.SpaceEffectRenderer;
 
-public class CameraHolder {
+public class CameraHolder implements Camera.PictureCallback {
     private Camera mCamera;
     private SpaceEffectRenderer renderer;
+
+    private boolean safeToTakePicture = false;
 
     public CameraHolder(SpaceEffectRenderer renderer) {
         this.renderer = renderer;
@@ -40,9 +51,14 @@ public class CameraHolder {
     }
 
     public void surfaceChanged() {
-        mCamera.startPreview();
-        mCamera.startFaceDetection();
-        mCamera.setFaceDetectionListener(renderer);
+        try {
+            mCamera.startPreview();
+            safeToTakePicture = true;
+            mCamera.startFaceDetection();
+            mCamera.setFaceDetectionListener(renderer);
+        } catch (Exception e) {
+
+        }
     }
 
     public void setParameters(int width, int height) {
@@ -66,5 +82,66 @@ public class CameraHolder {
         }
 
         mCamera.setParameters(param);
+    }
+
+    @Override
+    public void onPictureTaken(byte[] data, Camera camera) {
+        File pictureFile = getOutputMediaFile();
+        camera.startPreview();
+
+        /*Bitmap bmp = BitmapFactory.decodeByteArray(data, 0, data.length);
+        Matrix m = new Matrix();
+        m.setScale(bmp.getWidth(), bmp.getHeight());
+        m.preRotate(180, bmp.getWidth() / 2, bmp.getHeight() / 2);
+
+        Bitmap rotatedBitMap = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), m, true);*/
+
+        if (pictureFile == null) {
+            //no path to picture, return
+            safeToTakePicture = true;
+            return;
+        }
+
+        try {
+            FileOutputStream fos = new FileOutputStream(pictureFile);
+            //ByteArrayOutputStream stream = new ByteArrayOutputStream();
+            //rotatedBitMap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
+            fos.write(data);
+            fos.close();
+
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();              //<-------- show exception
+        } catch (IOException e) {
+            e.printStackTrace();              //<-------- show exception
+        }
+
+        //Thread processorThread = new PictureProcessor(pictureFile);
+        //processorThread.start();
+
+        camera.startPreview();
+        safeToTakePicture = true;
+        camera.startFaceDetection();
+        camera.setFaceDetectionListener(renderer);
+    }
+
+    public void tryTakePicture() {
+        if (safeToTakePicture) {
+            safeToTakePicture = false;
+            mCamera.takePicture(null, null, this);
+        }
+    }
+
+    static File getOutputMediaFile() {
+
+        /* yyyy-MM-dd'T'HH:mm:ss.SSSZ */
+        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss")
+                .format(new Date());
+
+        // file name
+        File mediaFile = new File(File.separator + "sdcard" + File.separator + "idMirror" +
+                File.separator + "IMG_" + timeStamp + ".jpg");
+
+        return mediaFile;
+
     }
 }

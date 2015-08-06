@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.pm.ConfigurationInfo;
+import android.graphics.Color;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.opengl.GLSurfaceView;
@@ -11,8 +12,12 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.util.Log;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.io.IOException;
@@ -44,9 +49,11 @@ public class Mirror extends Activity {
         mWL = ((PowerManager)getSystemService ( Context.POWER_SERVICE )).newWakeLock(PowerManager.FULL_WAKE_LOCK, "WakeLock");
         mWL.acquire();
 
-        glSurfaceView = new CameraSurfaceView(this);
+        //glSurfaceView = new CameraSurfaceView(this);
 
-        setContentView(glSurfaceView);
+        setContentView(R.layout.activity_mirror);
+
+        glSurfaceView = (CameraSurfaceView) findViewById(R.id.cameraSurfaceView);
     }
 
     @Override

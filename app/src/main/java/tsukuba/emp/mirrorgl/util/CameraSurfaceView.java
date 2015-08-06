@@ -3,17 +3,24 @@ package tsukuba.emp.mirrorgl.util;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.content.pm.ConfigurationInfo;
+import android.graphics.Color;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.opengl.GLSurfaceView;
 import android.os.Build;
+import android.util.AttributeSet;
 import android.util.Log;
 import android.view.SurfaceHolder;
+import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import java.io.IOException;
 
 import tsukuba.emp.mirrorgl.Mirror;
+import tsukuba.emp.mirrorgl.R;
 import tsukuba.emp.mirrorgl.SpaceEffectRenderer;
 
 /**
@@ -29,8 +36,8 @@ public class CameraSurfaceView extends GLSurfaceView {
      */
     private boolean rendererSet = false;
 
-    public CameraSurfaceView(Context context) {
-        super ( context );
+    public CameraSurfaceView(Context context, AttributeSet attributeSet) {
+        super ( context, attributeSet );
 
         // Check if the system supports OpenGL ES 2.0.
         ActivityManager activityManager =
@@ -61,6 +68,8 @@ public class CameraSurfaceView extends GLSurfaceView {
             //        Toast.LENGTH_LONG).show();
             return;
         }
+
+        setSystemUiVisibility(SYSTEM_UI_FLAG_HIDE_NAVIGATION);
 
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY );
     }

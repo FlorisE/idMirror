@@ -1,10 +1,16 @@
 package tsukuba.emp.mirrorgl;
 
+import android.app.Activity;
+import android.graphics.Color;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.opengl.GLES11Ext;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
+import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.widget.ImageView;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,6 +22,7 @@ import tsukuba.emp.mirrorgl.programs.MirrorGridShaderProgram;
 import tsukuba.emp.mirrorgl.util.BufferHolder;
 import tsukuba.emp.mirrorgl.util.CameraHolder;
 import tsukuba.emp.mirrorgl.util.CameraSurfaceView;
+import tsukuba.emp.mirrorgl.util.Constants;
 
 import static android.opengl.GLES20.*;
 
@@ -34,9 +41,6 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
 
     private boolean mUpdateST = false;
 
-    private int width = 0;
-    private int height = 0;
-
     private final float[] mMVPMatrix = new float[16];
     private final float[] mProjectionMatrix = new float[16];
     private final float[] mViewMatrix = new float[16];
@@ -46,12 +50,18 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
      */
     private CameraSurfaceView cameraSurfaceView;
 
+    private boolean fadeStarted = false;
+    private boolean fadeOutStarted = false;
+    private boolean fadeStopped = false;
+
+    private ImageView imageView;
+
     public SpaceEffectRenderer(CameraSurfaceView cameraSurfaceView)
     {
         this.cameraSurfaceView = cameraSurfaceView;
 
         mCameraHolder = new CameraHolder(this);
-        mBufferHolder = new BufferHolder();
+        mBufferHolder = new BufferHolder(this, mCameraHolder);
     }
 
     public void close() {
@@ -80,7 +90,7 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
     private void initializePrograms() {
         for (int i = 1; i <= mBufferHolder.getRows(); i++) {
             for (int j = 1; j <= mBufferHolder.getColumns(); j++) {
-                programs.add(new MirrorGridShaderProgram(cameraSurfaceView.getContext()));
+                programs.add(new MirrorGridShaderProgram(cameraSurfaceView.getContext(), this));
             }
         }
     }
@@ -88,8 +98,6 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
     @Override
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         glViewport(0, 0, width, height);
-        this.width = width;
-        this.height = height;
 
         mCameraHolder.setParameters(width, height);
 
@@ -125,8 +133,6 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
     public void onDrawFrame(GL10 gl) {
         glClear( GL_COLOR_BUFFER_BIT );
 
-        mBufferHolder.setViewPort(width, height);
-
         synchronized(this) {
             if ( mUpdateST ) {
                 mSTexture.updateTexImage();
@@ -143,15 +149,90 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
         Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
 
         mBufferHolder.renderToPrograms(programs, hTex[0], mMVPMatrix);
-
-
     }
 
     @Override
     public void onFaceDetection(Camera.Face[] faces, Camera camera) {
         if (faces.length > 0) {
+            if (!fadeStarted) {
+                fadeStarted = true;
+                fadeOutStarted = false;
+
+                imageView = (ImageView) ((Activity)cameraSurfaceView.getContext()).findViewById(R.id.fadeview);
+                imageView.setBackgroundColor(Color.BLACK);
+
+                Animation animation = new AlphaAnimation(1.0f, 0.0f);
+                animation.setDuration(Constants.FADE_TIME);
+                animation.setRepeatCount(0);
+
+                animation.setAnimationListener(new Animation.AnimationListener() {
+                    @Override
+                    public void onAnimationStart(Animation animation) {
+
+                    }
+
+                    @Override
+                    public void onAnimationEnd(Animation animation) {
+                        imageView.setVisibility(View.GONE);
+                        fadeStopped = true;
+                    }
+
+                    @Override
+                    public void onAnimationRepeat(Animation animation) {
+
+                    }
+                });
+
+                imageView.startAnimation(animation);
+            }
             mBufferHolder.updateBuffers(faces);
         }
+    }
+
+    public void fadeOut() {
+        ((Activity) cameraSurfaceView.getContext()).runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (imageView != null && !fadeOutStarted) {
+                    fadeOutStarted = true;
+                    Animation animation = new AlphaAnimation(0.0f, 1.0f);
+                    animation.setDuration(Constants.FADE_TIME);
+                    animation.setRepeatCount(0);
+
+                    animation.setAnimationListener(new Animation.AnimationListener() {
+                        @Override
+                        public void onAnimationStart(Animation animation) {
+                            imageView.setVisibility(View.VISIBLE);
+                        }
+
+                        @Override
+                        public void onAnimationEnd(Animation animation) {
+                            //fadeOutStopped = true;
+                        }
+
+                        @Override
+                        public void onAnimationRepeat(Animation animation) {
+
+                        }
+                    });
+
+                    imageView.startAnimation(animation);
+                }
+            }
+        });
+    }
+
+    public void resetFade() {
+        fadeStarted = false;
+
+        ((Activity) cameraSurfaceView.getContext()).runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (imageView != null) {
+                    imageView.setVisibility(View.VISIBLE);
+                }
+            }
+        });
     }
 }
 
