@@ -2,9 +2,11 @@ package tsukuba.emp.mirrorgl.util;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
+import android.media.ExifInterface;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -89,12 +91,15 @@ public class CameraHolder implements Camera.PictureCallback {
         File pictureFile = getOutputMediaFile();
         camera.startPreview();
 
-        /*Bitmap bmp = BitmapFactory.decodeByteArray(data, 0, data.length);
-        Matrix m = new Matrix();
-        m.setScale(bmp.getWidth(), bmp.getHeight());
-        m.preRotate(180, bmp.getWidth() / 2, bmp.getHeight() / 2);
+        Bitmap bmp = BitmapFactory.decodeByteArray(data, 0, data.length);
 
-        Bitmap rotatedBitMap = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), m, true);*/
+
+
+        //Matrix m = new Matrix();
+        //m.setScale(bmp.getWidth(), bmp.getHeight());
+        //m.preRotate(180, bmp.getWidth() / 2, bmp.getHeight() / 2);
+
+        //Bitmap rotatedBitMap = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), m, true);
 
         if (pictureFile == null) {
             //no path to picture, return
@@ -105,8 +110,10 @@ public class CameraHolder implements Camera.PictureCallback {
         try {
             FileOutputStream fos = new FileOutputStream(pictureFile);
             //ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            //rotatedBitMap.compress(Bitmap.CompressFormat.JPEG, 100, stream);
-            fos.write(data);
+            //
+
+            Bitmap rotatedBitmap = ExifUtil.rotateBitmap(pictureFile.getAbsolutePath(), bmp);
+            rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
             fos.close();
 
         } catch (FileNotFoundException e) {
@@ -115,8 +122,8 @@ public class CameraHolder implements Camera.PictureCallback {
             e.printStackTrace();              //<-------- show exception
         }
 
-        //Thread processorThread = new PictureProcessor(pictureFile);
-        //processorThread.start();
+        Thread processorThread = new PictureProcessor(pictureFile);
+        processorThread.start();
 
         camera.startPreview();
         safeToTakePicture = true;
@@ -139,7 +146,7 @@ public class CameraHolder implements Camera.PictureCallback {
 
         // file name
         File mediaFile = new File(File.separator + "sdcard" + File.separator + "idMirror" +
-                File.separator + "IMG_" + timeStamp + ".jpg");
+                File.separator + "IMG_" + timeStamp);
 
         return mediaFile;
 

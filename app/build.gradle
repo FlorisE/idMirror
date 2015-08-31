@@ -25,3 +25,8 @@ dependencies {
     compile files('libs/gson-2.2.4.jar')
     compile files('libs/simpleftp.jar')
 }
+
+
+task appStart(type: Exec, dependsOn: 'installDebug') {
+    commandLine 'cmd', '/c', 'adb', 'shell', 'am', 'start', '-n', 'tsukuba.emp.mirrorgl/.Mirror'
+}

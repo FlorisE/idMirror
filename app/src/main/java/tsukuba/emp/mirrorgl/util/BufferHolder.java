@@ -117,8 +117,14 @@ public class BufferHolder {
 
         for (int i = 0; i < verticeBufferCells.size(); i++) {
             VerticeBufferCell bufferCell = verticeBufferCells.get(i);
+            FloatBuffer buffer = bufferCell.getBuffer();
 
-            bufferCell.setDrawn(true);
+            float bufferWidth = buffer.get(0) - buffer.get(2);
+            float bufferHeight = buffer.get(5) - buffer.get(1);
+
+            if (inEllipse(buffer.get(5) - bufferHeight/2, -1f * (buffer.get(0) - bufferWidth/2), 0f, 0f, 1f, 1f)) {
+                bufferCell.setDrawn(true);
+            }
         }
 
         int count = -1;
@@ -142,5 +148,9 @@ public class BufferHolder {
                 buffer.position(0);
             }
         }
+    }
+
+    public boolean inEllipse(float pointX, float pointY, float originX, float originY, float xRadius, float yRadius) {
+        return ((Math.pow(pointX - originX, 2)/Math.pow(xRadius, 2)) + (Math.pow(pointY - originY, 2)/Math.pow(yRadius, 2)) <= 1);
     }
 }

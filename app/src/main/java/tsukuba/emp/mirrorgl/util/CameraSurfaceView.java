@@ -69,7 +69,11 @@ public class CameraSurfaceView extends GLSurfaceView {
             return;
         }
 
-        setSystemUiVisibility(SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+        setSystemUiVisibility(SYSTEM_UI_FLAG_LAYOUT_STABLE 
+                              | SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION 
+                              | SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                              | SYSTEM_UI_FLAG_FULLSCREEN
+                              | SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
 
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY );
     }
