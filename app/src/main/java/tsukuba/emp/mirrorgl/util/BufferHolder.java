@@ -56,7 +56,15 @@ public class BufferHolder {
                 buffer.position(0);
                 buffer2.position(0);
 
-                verticeBufferCells.add(new VerticeBufferCell(i - 1, j - 1, buffer));
+                VerticeBufferCell bufferCell = new VerticeBufferCell(i - 1, j - 1, buffer);
+                float bufferWidth = buffer.get(0) - buffer.get(2);
+                float bufferHeight = buffer.get(5) - buffer.get(1);
+
+                if (inEllipse(buffer.get(5) - bufferHeight/2, -1f * (buffer.get(0) - bufferWidth/2), 0f, 0f, 1f, 1f)) {
+                    bufferCell.setDrawn(true);
+                }
+
+                verticeBufferCells.add(bufferCell);
 
                 FloatBuffer texCoords = ByteBuffer.allocateDirect(8 * 4).order(ByteOrder.nativeOrder()).asFloatBuffer();
                 textureBuffers.add(texCoords);
@@ -80,8 +88,8 @@ public class BufferHolder {
             renderer.resetFade();
         }
 
-        for (int i = 0; i < verticeBuffers.size(); i++) {
-            if (faceStart == 0) {
+        if (faceStart == 0) {
+            for (int i = 0; i < verticeBuffers.size(); i++) {
                 for (int j = 0; j < 8; j++) {
                     verticeBuffers.get(i).put(j, originalVerticeBuffers.get(i).get(j));
                 }
@@ -103,8 +111,8 @@ public class BufferHolder {
         if (faceStart == 0)
             faceStart = faceCurrent;
 
-        if (faceCurrent > faceStart + 5000 && !picTaken) {
-            mCameraHolder.tryTakePicture();
+        if (faceCurrent > faceStart + Constants.PICTURE_TIME && !picTaken) {
+            mCameraHolder.tryTakePicture(faceRect);
             picTaken = true;
         }
 
@@ -115,7 +123,7 @@ public class BufferHolder {
         float width = faceRect.width() / 2000f;
         float height = faceRect.height() / 2000f;
 
-        for (int i = 0; i < verticeBufferCells.size(); i++) {
+        /*for (int i = 0; i < verticeBufferCells.size(); i++) {
             VerticeBufferCell bufferCell = verticeBufferCells.get(i);
             FloatBuffer buffer = bufferCell.getBuffer();
 
@@ -125,7 +133,7 @@ public class BufferHolder {
             if (inEllipse(buffer.get(5) - bufferHeight/2, -1f * (buffer.get(0) - bufferWidth/2), 0f, 0f, 1f, 1f)) {
                 bufferCell.setDrawn(true);
             }
-        }
+        }*/
 
         int count = -1;
 
@@ -139,11 +147,10 @@ public class BufferHolder {
 
             for (int j = Constants.BUFFER_NN; j > 0; j--) {
                 count++;
-
+                FloatBuffer buffer = textureBuffers.get(count);
                 float particleLeft = left + ((float) j / Constants.BUFFER_NN) * width;
                 float particleRight = particleLeft + width / Constants.BUFFER_NN;
 
-                FloatBuffer buffer = textureBuffers.get(count);
                 buffer.put(new float[]{particleLeft, particleBottom, particleLeft, particleTop, particleRight, particleBottom, particleRight, particleTop});
                 buffer.position(0);
             }

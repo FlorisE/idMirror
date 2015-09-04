@@ -10,6 +10,8 @@ import android.opengl.GLSurfaceView;
 import android.os.Build;
 import android.util.AttributeSet;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.SurfaceHolder;
 import android.view.View;
 import android.view.animation.AlphaAnimation;
@@ -69,12 +71,6 @@ public class CameraSurfaceView extends GLSurfaceView {
             return;
         }
 
-        setSystemUiVisibility(SYSTEM_UI_FLAG_LAYOUT_STABLE 
-                              | SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION 
-                              | SYSTEM_UI_FLAG_HIDE_NAVIGATION
-                              | SYSTEM_UI_FLAG_FULLSCREEN
-                              | SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
-
         setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY );
     }
 
@@ -98,6 +94,6 @@ public class CameraSurfaceView extends GLSurfaceView {
     }
 
     public void surfaceChanged ( SurfaceHolder holder, int format, int w, int h ) {
-        super.surfaceChanged ( holder, format, w, h );
+        super.surfaceChanged(holder, format, w, h);
     }
 }

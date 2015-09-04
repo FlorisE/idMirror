@@ -99,9 +99,11 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
     public void onSurfaceChanged(GL10 gl, int width, int height) {
         glViewport(0, 0, width, height);
 
-        mCameraHolder.setParameters(width, height);
+        if (mCameraHolder != null) {
+            mCameraHolder.setParameters(width, height);
 
-        mCameraHolder.surfaceChanged();
+            mCameraHolder.surfaceChanged();
+        }
 
         float ratio = (float) width / height;
 

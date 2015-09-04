@@ -4,6 +4,7 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
+import android.graphics.Rect;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.media.ExifInterface;
@@ -24,6 +25,8 @@ public class CameraHolder implements Camera.PictureCallback {
     private SpaceEffectRenderer renderer;
 
     private boolean safeToTakePicture = false;
+
+    private Rect faceRect = null;
 
     public CameraHolder(SpaceEffectRenderer renderer) {
         this.renderer = renderer;
@@ -88,41 +91,9 @@ public class CameraHolder implements Camera.PictureCallback {
 
     @Override
     public void onPictureTaken(byte[] data, Camera camera) {
-        File pictureFile = getOutputMediaFile();
         camera.startPreview();
 
-        Bitmap bmp = BitmapFactory.decodeByteArray(data, 0, data.length);
-
-
-
-        //Matrix m = new Matrix();
-        //m.setScale(bmp.getWidth(), bmp.getHeight());
-        //m.preRotate(180, bmp.getWidth() / 2, bmp.getHeight() / 2);
-
-        //Bitmap rotatedBitMap = Bitmap.createBitmap(bmp, 0, 0, bmp.getWidth(), bmp.getHeight(), m, true);
-
-        if (pictureFile == null) {
-            //no path to picture, return
-            safeToTakePicture = true;
-            return;
-        }
-
-        try {
-            FileOutputStream fos = new FileOutputStream(pictureFile);
-            //ByteArrayOutputStream stream = new ByteArrayOutputStream();
-            //
-
-            Bitmap rotatedBitmap = ExifUtil.rotateBitmap(pictureFile.getAbsolutePath(), bmp);
-            rotatedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
-            fos.close();
-
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();              //<-------- show exception
-        } catch (IOException e) {
-            e.printStackTrace();              //<-------- show exception
-        }
-
-        Thread processorThread = new PictureProcessor(pictureFile);
+        Thread processorThread = new PictureProcessor(data, faceRect);
         processorThread.start();
 
         camera.startPreview();
@@ -131,24 +102,11 @@ public class CameraHolder implements Camera.PictureCallback {
         camera.setFaceDetectionListener(renderer);
     }
 
-    public void tryTakePicture() {
+    public void tryTakePicture(Rect faceRect) {
         if (safeToTakePicture) {
             safeToTakePicture = false;
+            this.faceRect = faceRect;
             mCamera.takePicture(null, null, this);
         }
-    }
-
-    static File getOutputMediaFile() {
-
-        /* yyyy-MM-dd'T'HH:mm:ss.SSSZ */
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss")
-                .format(new Date());
-
-        // file name
-        File mediaFile = new File(File.separator + "sdcard" + File.separator + "idMirror" +
-                File.separator + "IMG_" + timeStamp);
-
-        return mediaFile;
-
     }
 }

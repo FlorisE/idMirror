@@ -66,7 +66,7 @@ public class MirrorGridShaderProgram extends ShaderProgram {
                     buffer.put(j, (buffer.get(j) - 0.0000002f * faceTime));
                 }
             }
-            if (faceTime > Constants.FADE_TIME + 2000f) {
+            if (faceTime > Constants.FADE_TIME + Constants.INTERACTION_TIME) {
                 renderer.fadeOut();
             }
 
