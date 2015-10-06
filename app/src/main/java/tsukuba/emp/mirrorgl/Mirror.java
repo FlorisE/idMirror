@@ -6,7 +6,6 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.SurfaceTexture;
-import android.net.nsd.NsdManager;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.PowerManager;
@@ -45,10 +44,6 @@ public class Mirror extends Activity implements View.OnTouchListener {
 
     private long lastTouch = 0;
 
-    private ProjectionServerListener mDiscoveryListener;
-
-    private NsdManager mNsdManager;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -73,11 +68,6 @@ public class Mirror extends Activity implements View.OnTouchListener {
                         | View.SYSTEM_UI_FLAG_FULLSCREEN
                         | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
         glSurfaceView.setOnTouchListener(this);
-
-        mNsdManager = (NsdManager)  getSystemService(Context.NSD_SERVICE);
-
-        mDiscoveryListener = new ProjectionServerListener();
-        mNsdManager.discoverServices("_http._tcp", 1, mDiscoveryListener);
     }
 
     @Override
