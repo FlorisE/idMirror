@@ -6,6 +6,7 @@ import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.graphics.SurfaceTexture;
+import android.net.nsd.NsdManager;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.PowerManager;
@@ -20,6 +21,7 @@ import android.view.WindowManager;
 import android.widget.EditText;
 
 import tsukuba.emp.mirrorgl.util.CameraSurfaceView;
+import tsukuba.emp.mirrorgl.util.ProjectionServerListener;
 import tsukuba.emp.mirrorgl.util.Settings;
 
 
@@ -27,7 +29,7 @@ import tsukuba.emp.mirrorgl.util.Settings;
  * An example full-screen activity that shows and hides the system UI (i.e.
  * status bar and navigation/system bar) with user interaction.
  */
-public class Mirror extends Activity  implements View.OnTouchListener {
+public class Mirror extends Activity implements View.OnTouchListener {
     /**
      * The surfaceview for OpenGL rendering
      */
@@ -43,18 +45,19 @@ public class Mirror extends Activity  implements View.OnTouchListener {
 
     private long lastTouch = 0;
 
+    private ProjectionServerListener mDiscoveryListener;
+
+    private NsdManager mNsdManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        //requestWindowFeature(Window.FEATURE_NO_TITLE);
         requestWindowFeature(Window.FEATURE_ACTION_BAR);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON, WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         mWL = ((PowerManager) getSystemService(Context.POWER_SERVICE)).newWakeLock(PowerManager.FULL_WAKE_LOCK, "WakeLock");
         mWL.acquire();
-
-        //glSurfaceView = new CameraSurfaceView(this);
 
         setContentView(R.layout.activity_mirror);
 
@@ -64,13 +67,17 @@ public class Mirror extends Activity  implements View.OnTouchListener {
         actionBar.hide();
 
         glSurfaceView.
-                setSystemUiVisibility(/*View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        | */View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                         | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                         | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                         | View.SYSTEM_UI_FLAG_FULLSCREEN
                         | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY);
         glSurfaceView.setOnTouchListener(this);
+
+        mNsdManager = (NsdManager)  getSystemService(Context.NSD_SERVICE);
+
+        mDiscoveryListener = new ProjectionServerListener();
+        mNsdManager.discoverServices("_http._tcp", 1, mDiscoveryListener);
     }
 
     @Override
@@ -88,10 +95,6 @@ public class Mirror extends Activity  implements View.OnTouchListener {
         super.onResume();
 
         glSurfaceView.onResume();
-
-        /*if (mCamera == null) {
-            startCamera();
-        }*/
 
         mWL.acquire();
     }
