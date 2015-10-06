@@ -123,7 +123,7 @@ public class PictureProcessor extends Thread {
 
         // file name
         File mediaFile = new File(File.separator + "sdcard" + File.separator + "idMirror" +
-                File.separator + "IMG_" + timeStamp);
+                File.separator + "IMG_" + timeStamp + "_C");
 
         return mediaFile;
     }
