@@ -1,7 +1,9 @@
 package tsukuba.emp.mirrorgl.util;
 
+import android.app.Activity;
 import android.graphics.Rect;
 import android.hardware.Camera;
+import android.view.WindowManager;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -30,10 +32,12 @@ public class BufferHolder {
     private CameraHolder mCameraHolder = null;
     private boolean picTaken = false;
     private SpaceEffectRenderer renderer;
+    private Activity mirror;
 
     public BufferHolder(SpaceEffectRenderer renderer, CameraHolder cameraHolder) {
         this.renderer = renderer;
         this.mCameraHolder = cameraHolder;
+        mirror = (Activity) renderer.getCameraSurfaceView().getContext();
 
         for (int i = 1; i <= Constants.BUFFER_NN; i++)
             for (int j = 1; j <= Constants.BUFFER_NN; j++) {
@@ -81,11 +85,23 @@ public class BufferHolder {
         return Constants.BUFFER_NN;
     }
 
+    private void setBrightness(final float brightness) {
+        mirror.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                WindowManager.LayoutParams layout = mirror.getWindow().getAttributes();
+                layout.screenBrightness = brightness;
+                mirror.getWindow().setAttributes(layout);
+            }
+        });
+    }
+
     public void resetBuffers() {
         if (System.currentTimeMillis() > faceCurrent + 2000) {
             faceStart = 0;
             picTaken = false;
             renderer.resetFade();
+            setBrightness(0F);
         }
 
         if (faceStart == 0) {
@@ -108,8 +124,10 @@ public class BufferHolder {
     public void updateBuffers(Camera.Face[] faces) {
         faceCurrent = System.currentTimeMillis();
 
-        if (faceStart == 0)
+        if (faceStart == 0) {
             faceStart = faceCurrent;
+            setBrightness(1F);
+        }
 
         if (faceCurrent > faceStart + Constants.PICTURE_TIME && !picTaken) {
             mCameraHolder.tryTakePicture(faceRect);

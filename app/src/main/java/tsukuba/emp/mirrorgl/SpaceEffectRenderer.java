@@ -45,6 +45,10 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
     private final float[] mProjectionMatrix = new float[16];
     private final float[] mViewMatrix = new float[16];
 
+    public CameraSurfaceView getCameraSurfaceView() {
+        return cameraSurfaceView;
+    }
+
     /**
      * The context with which the renderer should interact
      */
