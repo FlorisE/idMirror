@@ -20,7 +20,6 @@ import android.view.WindowManager;
 import android.widget.EditText;
 
 import tsukuba.emp.mirrorgl.util.CameraSurfaceView;
-import tsukuba.emp.mirrorgl.util.ProjectionServerListener;
 import tsukuba.emp.mirrorgl.util.Settings;
 
 
