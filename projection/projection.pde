@@ -1,4 +1,3 @@
-import gab.opencv.*;
 import java.awt.Rectangle;
 import java.io.File;
 import java.io.FilenameFilter;
@@ -6,133 +5,160 @@ import java.util.Collections;
 import java.util.Arrays;
 import java.util.List;
 
-OpenCV opencv;
-Rectangle[] faces;
 ArrayList<String> paths = new ArrayList<String>();
 ArrayList<String> pathsCopy = new ArrayList<String>();
 ArrayList<PImage> images = new ArrayList<PImage>();
 ArrayList<PImage> drawnImages = new ArrayList<PImage>();
-int pictureCount = 0;
-int numPicsDrawn = 4;
+int numPicsDrawn = 20;
 
-int screenwidth = 768;
-int screenheight = 1040;
+int screenwidth = 1680;
+int screenheight = 1050;
+
+int counterStart = 2416;
+
+// hdmi mode 58
 
 int opacity = 75;
 
+int leftMargin = 120;
+int topMargin = 90;
+
+int horizontalCells = 6;
+int verticalCells = 4;
+
+int squareSides = 240;
+
+int[][] gridLeft = new int[horizontalCells][verticalCells];
+int[][] gridTop = new int[horizontalCells][verticalCells];
+
 PFont astro;
 
+// String targetDirectory = "/home/pi/idmirror"; 
+String targetDirectory = "C:\\idMirrorPictures\\ars";
+
 void setup() {
+  println("starting");
+  for (int i = 0; i < horizontalCells; i++) {
+    for (int j = 0; j < verticalCells; j++) {
+      gridLeft[i][j] = leftMargin + i * squareSides;
+      gridTop[i][j]  = topMargin + j * squareSides;
+    }
+  }
+  
+  background(0);
   size(screenwidth, screenheight);
   astro = loadFont("Astronaut-100.vlw");
   textFont(astro, 100);
-  
-  //  color(0, 0, 0);
-  //rect(0, 0, screenwidth, screenheight);
 }
 
-void draw() {
-  
-  // load pictures from folder
-  File pictureDirectory = new File("C:\\idMirrorPictures");
-
-  FilenameFilter filter = new FilenameFilter() {
+FilenameFilter getFilter() {
+  return new FilenameFilter() {
     @Override
       public boolean accept(File dir, String name) {
       return name.endsWith("jpg");
     }
   };
-  
-  List<File> picturesAsArrayList = Arrays.asList(pictureDirectory.listFiles (filter));
+}
+
+List<File> loadImages() {
+  // read folder to find pictures
+  File pictureDirectory = new File(targetDirectory);
+  List<File> picturesAsArrayList = Arrays.asList(pictureDirectory.listFiles (getFilter()));
   Collections.reverse(picturesAsArrayList);
   
-  // detect upto 4 faces in the pictures
-  int facesDetected = 0;
-  for (File picture : picturesAsArrayList) {
+  for (int i = 0; i < numPicsDrawn; i++) {
+    println("loading picture");
+    File picture = picturesAsArrayList.get(i);
     String path = picture.getAbsolutePath().replace("\\", "\\\\");
-        
+    
     // only load new pictures
     if (!paths.contains(path)) {
       paths.add(path);
-      opencv = new OpenCV(this, path);
-      opencv.loadCascade(OpenCV.CASCADE_FRONTALFACE);
-      faces = opencv.detect();
-
-      if (faces.length == 1) {
-        facesDetected++;
-        int image1x = faces[0].x-25;
-        int image1y = faces[0].y-25;
-        int image1width = faces[0].width+50;
-        int image1height = faces[0].height+50;
-
-        PImage image = opencv.getInput();
-        image = image.get(image1x, image1y, image1width, image1height);
-        images.add(image);
-      } else if (faces.length > 1) {
-        println("multiple faces detected"); 
-      } else {
-        println("no face detected in picture " + path);
-      }
+      PImage image = loadImage(path);
+      images.add(image);
     } else {
-      break;
-    }
-    
-    if (facesDetected == 4) {
       break;
     }
   }
   
+  return picturesAsArrayList;
+}
+
+void updateMiniaturesArray() {
   if (drawnImages.size() == 0) {
-    for (int i = images.size()-1; i >= 0 ; i--) {
+    for (int i = images.size()-1; i >= images.size()-numPicsDrawn; i--) {
       drawnImages.add(images.get(i));
     }
   } else {
     for (int i = 0; i < images.size(); i++) {
       PImage newPicture = images.get(i);
+      
+      // move existing items
       for (int j = 0; j < drawnImages.size()-1; j++) {
         drawnImages.set(j, drawnImages.get(j+1));
       }
+      // replace image
       drawnImages.set(drawnImages.size()-1, newPicture);
     }
   }
-  
+}
+
+void drawBigPicture() {
+ // draw the big images on top of each other
   for (int i = images.size()-1; i >= 0; i--) {
     PImage picture = images.get(i);
 
     tint(255, opacity);
-    picture.resize(768, 768);
-    image(picture, 0, 80);
-  }
+    picture.resize(2 * squareSides - 10, 2 * squareSides - 10);
+    image(picture, gridLeft[2][1]+5, gridTop[2][1]+5);
+  } 
+}
 
-  for (int i = drawnImages.size()-1; i >= 0; i--) {
-    PImage picture = drawnImages.get(i);
-    noTint();
-
-    picture.resize(188, 188);
-    
-    image(picture, i % 4 * (screenwidth / 4) + 2, screenheight - 192 + 2);
-  }
-
-  images.clear();
+void drawMiniatures() {
+  int miniaturesDrawn = 0;
   
+  for (int i = 0; i < horizontalCells; i++) {
+    for (int j = 0; j < verticalCells; j++) {
+      if (i >= 2 && i <= 3 && j >= 1 && j <= 2) {
+        continue;
+      } 
+      
+      PImage picture = drawnImages.get(miniaturesDrawn);
+      noTint();
+      
+      miniaturesDrawn++;
+      picture.resize(230, 230);
+      
+      image(picture, gridLeft[i][j]+5, gridTop[i][j]+5, 230, 230);
+    }
+  }
+}
+
+void drawCounter(List<File> picturesAsArrayList) {
   int pictureCount = picturesAsArrayList.size();
   
   // counter background
-  fill(0);  
+  fill(0);
   strokeWeight(0);
-  rect(0, 0, screenwidth, 80);
-
-  // draw the counter
+  rect(0, 0, screenwidth, 90);
+  
+  // counter text
   fill(255);
-  text(nf(pictureCount, 4, 0), screenwidth/2-140, 60);
-
-  // refresh every second
-  //delay(10);
+  text(nf(counterStart + pictureCount, 4, 0), screenwidth/2-140, 60);
 }
 
-void delay(int delay)
-{
+void draw() {
+  List<File> picturesAsArrayList = loadImages();
+  println("updating miniatures");
+  updateMiniaturesArray();
+  drawBigPicture();
+  drawMiniatures();
+  drawCounter(picturesAsArrayList);  
+  
+  images.clear();
+}
+
+void delay(int delay) {
   int time = millis();
   while (millis () - time <= delay);
 }
-
