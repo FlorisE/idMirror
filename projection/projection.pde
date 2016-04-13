@@ -11,9 +11,6 @@ ArrayList<PImage> images = new ArrayList<PImage>();
 ArrayList<PImage> drawnImages = new ArrayList<PImage>();
 int numPicsDrawn = 20;
 
-int screenwidth = 1680;
-int screenheight = 1050;
-
 int counterStart = 2416;
 
 // hdmi mode 58
@@ -33,10 +30,10 @@ int[][] gridTop = new int[horizontalCells][verticalCells];
 
 PFont astro;
 
-// String targetDirectory = "/home/pi/idmirror"; 
-String targetDirectory = "C:\\idMirrorPictures\\ars";
+String targetDirectory = "";
 
 void setup() {
+  fullScreen();
   println("starting");
   for (int i = 0; i < horizontalCells; i++) {
     for (int j = 0; j < verticalCells; j++) {
@@ -46,9 +43,12 @@ void setup() {
   }
   
   background(0);
-  size(screenwidth, screenheight);
   astro = loadFont("Astronaut-100.vlw");
   textFont(astro, 100);
+  
+  XML xml = loadXML("config.xml");
+  targetDirectory = xml.getChild("pictures").getContent();
+  counterStart = Integer.parseInt(xml.getChild("counterStart").getContent());
 }
 
 FilenameFilter getFilter() {
@@ -63,21 +63,28 @@ FilenameFilter getFilter() {
 List<File> loadImages() {
   // read folder to find pictures
   File pictureDirectory = new File(targetDirectory);
-  List<File> picturesAsArrayList = Arrays.asList(pictureDirectory.listFiles (getFilter()));
+  File[] filteredFiles = pictureDirectory.listFiles (getFilter());
+  Arrays.sort(filteredFiles);
+  List<File> picturesAsArrayList = Arrays.asList(filteredFiles);
   Collections.reverse(picturesAsArrayList);
   
-  for (int i = 0; i < numPicsDrawn; i++) {
-    println("loading picture");
-    File picture = picturesAsArrayList.get(i);
-    String path = picture.getAbsolutePath().replace("\\", "\\\\");
-    
-    // only load new pictures
-    if (!paths.contains(path)) {
-      paths.add(path);
-      PImage image = loadImage(path);
-      images.add(image);
-    } else {
-      break;
+  if (picturesAsArrayList.size() < numPicsDrawn) {
+    println("not enough pictures in the pictures folder");
+    exit();
+  } else {
+    for (int i = 0; i < numPicsDrawn; i++) {
+      println("loading picture");
+      File picture = picturesAsArrayList.get(i);
+      String path = picture.getAbsolutePath().replace("\\", "\\\\");
+      
+      // only load new pictures
+      if (!paths.contains(path)) {
+        paths.add(path);
+        PImage image = loadImage(path);
+        images.add(image);
+      } else {
+        break;
+      }
     }
   }
   
@@ -117,8 +124,8 @@ void drawBigPicture() {
 void drawMiniatures() {
   int miniaturesDrawn = 0;
   
-  for (int i = 0; i < horizontalCells; i++) {
-    for (int j = 0; j < verticalCells; j++) {
+  for (int i = horizontalCells - 1; i >= 0; i--) {
+    for (int j = verticalCells - 1; j >= 0; j--) {
       if (i >= 2 && i <= 3 && j >= 1 && j <= 2) {
         continue;
       } 
@@ -140,22 +147,24 @@ void drawCounter(List<File> picturesAsArrayList) {
   // counter background
   fill(0);
   strokeWeight(0);
-  rect(0, 0, screenwidth, 90);
+  rect(0, 0, width, 90);
   
   // counter text
   fill(255);
-  text(nf(counterStart + pictureCount, 4, 0), screenwidth/2-140, 60);
+  text(nf(counterStart + pictureCount, 4, 0), width/2-140, 60);
 }
 
 void draw() {
   List<File> picturesAsArrayList = loadImages();
-  println("updating miniatures");
-  updateMiniaturesArray();
-  drawBigPicture();
-  drawMiniatures();
-  drawCounter(picturesAsArrayList);  
-  
-  images.clear();
+  if (picturesAsArrayList.size() >= numPicsDrawn) {
+    println("updating miniatures");
+    updateMiniaturesArray();
+    drawBigPicture();
+    drawMiniatures();
+    drawCounter(picturesAsArrayList);  
+    
+    images.clear();
+  }
 }
 
 void delay(int delay) {
