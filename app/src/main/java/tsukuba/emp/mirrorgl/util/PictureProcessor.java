@@ -5,21 +5,13 @@ import android.graphics.BitmapFactory;
 import android.graphics.Rect;
 import android.util.Log;
 
-import org.jibble.simpleftp.SimpleFTP;
-
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-import static android.opengl.GLES20.glGetShaderInfoLog;
-
-/**
- * Created by Floris on 26-7-2015.
- */
 public class PictureProcessor extends Thread {
 
     private File file;
@@ -34,41 +26,41 @@ public class PictureProcessor extends Thread {
 
     @Override
     public void run() {
-        resizeAndUpload(data, faceRect);
+        resizeAndSave(data, faceRect);
 
-        try {
-            SimpleFTP ftp = new SimpleFTP();
+        Settings settings = Settings.getInstance();
+        String ftpAddress = settings.getFtpAddress();
 
-            Settings settings = Settings.getInstance();
+        if (!ftpAddress.isEmpty()) {
+            try {
+                SimpleFTP ftp = new SimpleFTP();
 
-            // Connect to an FTP server on port 21.
-            ftp.connect(settings.getFtpAddress(), settings.getFtpPort());
+                ftp.connect(settings.getFtpAddress(), settings.getFtpPort());
+                ftp.cwd("pictures");
+                ftp.bin();
+                ftp.stor(file);
 
-            // Set binary mode.
-            ftp.bin();
+                // When uploading we give the file a temporary name so it doesn't get loaded by the
+                // projection directly, so here we rename the file so it will get loaded
+                ftp.ren(file.getName(), file.getName() + ".jpg");
 
-            // Upload some files.
-            ftp.stor(file);
-
-            // Quit from the FTP server.
-            ftp.disconnect();
-        }
-        catch (IOException e) {
-            if (LoggerConfig.ON) {
-                // Print the shader info log to the Android log output.
-                Log.e("FTP", e.getMessage());
+                // Finished!
+                ftp.disconnect();
+            } catch (IOException e) {
+                if (LoggerConfig.ON) {
+                    Log.e("FTP", e.getMessage());
+                }
             }
         }
     }
 
-    private void resizeAndUpload(byte[] data, Rect faceRect) {
+    private void resizeAndSave(byte[] data, Rect faceRect) {
         file = getOutputMediaFile();
 
         Bitmap bmp = BitmapFactory.decodeByteArray(data, 0, data.length);
 
         try {
             FileOutputStream fos = new FileOutputStream(file);
-            //ByteArrayOutputStream stream = new ByteArrayOutputStream();
 
             int x = (Math.round((faceRect.left + 1000f) / 2f) * (bmp.getWidth() / 1000) ) - 25;
             int y = (Math.round((faceRect.top + 1000f) / 2f) * (bmp.getHeight() / 1000)) - 25;
@@ -107,23 +99,25 @@ public class PictureProcessor extends Thread {
             fos.close();
 
         } catch (FileNotFoundException e) {
-            e.printStackTrace();              //<-------- show exception
+            e.printStackTrace();
         } catch (IOException e) {
-            e.printStackTrace();              //<-------- show exception
+            e.printStackTrace();
         }
     }
 
 
 
     static File getOutputMediaFile() {
-
-        /* yyyy-MM-dd'T'HH:mm:ss.SSSZ */
         String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss")
                 .format(new Date());
 
-        // file name
+        // device id
+        String deviceId64 = android.provider.Settings.Secure.ANDROID_ID;
+        String shortDeviceId = deviceId64.substring(deviceId64.length()-9);
+
+        // Append the last 8 characters of the device id to avoid conflicts
         File mediaFile = new File(File.separator + "sdcard" + File.separator + "idMirror" +
-                File.separator + "IMG_" + timeStamp + "_C");
+                File.separator + "IMG_" + timeStamp + "_" + shortDeviceId);
 
         return mediaFile;
     }

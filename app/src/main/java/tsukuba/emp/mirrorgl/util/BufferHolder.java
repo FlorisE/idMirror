@@ -10,12 +10,9 @@ import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 import tsukuba.emp.mirrorgl.SpaceEffectRenderer;
 import tsukuba.emp.mirrorgl.programs.MirrorGridShaderProgram;
-
-import static android.opengl.GLES20.glViewport;
 
 public class BufferHolder {
 
@@ -64,9 +61,9 @@ public class BufferHolder {
                 float bufferWidth = buffer.get(0) - buffer.get(2);
                 float bufferHeight = buffer.get(5) - buffer.get(1);
 
-                if (inEllipse(buffer.get(5) - bufferHeight/2, -1f * (buffer.get(0) - bufferWidth/2), 0f, 0f, 1f, 1f)) {
-                    bufferCell.setDrawn(true);
-                }
+
+                // If only drawing cells within an ellipse, make sure this cell is located within the ellipsis
+                bufferCell.setDrawn(!Constants.DRAW_ELLIPSE || inEllipse(buffer.get(5) - bufferHeight / 2, -1f * (buffer.get(0) - bufferWidth / 2), 0f, 0f, 1f, 1f));
 
                 verticeBufferCells.add(bufferCell);
 

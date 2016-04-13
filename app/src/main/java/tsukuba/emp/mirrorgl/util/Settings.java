@@ -17,7 +17,7 @@ public class Settings {
         return instance;
     }
 
-    private String ftpAddress = "192.168.10.2";
+    private String ftpAddress = "";
     private int ftpPort = 21;
 
     public String getFtpAddress() {

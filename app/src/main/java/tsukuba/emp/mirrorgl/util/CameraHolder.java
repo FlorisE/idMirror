@@ -93,6 +93,7 @@ public class CameraHolder implements Camera.PictureCallback {
     public void onPictureTaken(byte[] data, Camera camera) {
         camera.startPreview();
 
+
         Thread processorThread = new PictureProcessor(data, faceRect);
         processorThread.start();
 

@@ -2,9 +2,6 @@ package tsukuba.emp.mirrorgl.util;
 
 import java.nio.FloatBuffer;
 
-/**
- * Created by utail on 7/8/2015.
- */
 public class VerticeBufferCell {
     int horizontalIndex;
     int verticalIndex;

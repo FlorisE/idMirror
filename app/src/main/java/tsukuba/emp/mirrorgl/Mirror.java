@@ -47,14 +47,11 @@ public class Mirror extends Activity  implements View.OnTouchListener {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        //requestWindowFeature(Window.FEATURE_NO_TITLE);
         requestWindowFeature(Window.FEATURE_ACTION_BAR);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON, WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         mWL = ((PowerManager) getSystemService(Context.POWER_SERVICE)).newWakeLock(PowerManager.FULL_WAKE_LOCK, "WakeLock");
         mWL.acquire();
-
-        //glSurfaceView = new CameraSurfaceView(this);
 
         setContentView(R.layout.activity_mirror);
 
@@ -64,8 +61,7 @@ public class Mirror extends Activity  implements View.OnTouchListener {
         actionBar.hide();
 
         glSurfaceView.
-                setSystemUiVisibility(/*View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        | */View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
                         | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
                         | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
                         | View.SYSTEM_UI_FLAG_FULLSCREEN
@@ -88,10 +84,6 @@ public class Mirror extends Activity  implements View.OnTouchListener {
         super.onResume();
 
         glSurfaceView.onResume();
-
-        /*if (mCamera == null) {
-            startCamera();
-        }*/
 
         mWL.acquire();
     }
