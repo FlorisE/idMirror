@@ -138,24 +138,12 @@ public class BufferHolder {
         float width = faceRect.width() / 2000f;
         float height = faceRect.height() / 2000f;
 
-        /*for (int i = 0; i < verticeBufferCells.size(); i++) {
-            VerticeBufferCell bufferCell = verticeBufferCells.get(i);
-            FloatBuffer buffer = bufferCell.getBuffer();
-
-            float bufferWidth = buffer.get(0) - buffer.get(2);
-            float bufferHeight = buffer.get(5) - buffer.get(1);
-
-            if (inEllipse(buffer.get(5) - bufferHeight/2, -1f * (buffer.get(0) - bufferWidth/2), 0f, 0f, 1f, 1f)) {
-                bufferCell.setDrawn(true);
-            }
-        }*/
-
-        int count = -1;
-
-        stretchDetectedFaceToScreen(left, bottom, width, height, count);
+        stretchDetectedFaceToScreen(left, bottom, width, height);
     }
 
-    private void stretchDetectedFaceToScreen(float left, float bottom, float width, float height, int count) {
+    private void stretchDetectedFaceToScreen(float left, float bottom, float width, float height) {
+        int count = -1;
+
         for (int i = 1; i <= Constants.BUFFER_NN; i++) {
             float particleBottom = bottom + ((float) i / Constants.BUFFER_NN) * height;
             float particleTop = particleBottom + height / Constants.BUFFER_NN;

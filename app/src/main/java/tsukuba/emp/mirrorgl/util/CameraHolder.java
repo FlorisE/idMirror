@@ -20,16 +20,21 @@ import java.util.List;
 
 import tsukuba.emp.mirrorgl.SpaceEffectRenderer;
 
+import static tsukuba.emp.mirrorgl.util.PictureProcessor.*;
+
 public class CameraHolder implements Camera.PictureCallback {
     private Camera mCamera;
     private SpaceEffectRenderer renderer;
 
     private boolean safeToTakePicture = false;
+    private PictureProcessor processorThread;
 
     private Rect faceRect = null;
 
     public CameraHolder(SpaceEffectRenderer renderer) {
         this.renderer = renderer;
+        processorThread = new PictureProcessor();
+        processorThread.start();
     }
 
     public void close() {
@@ -66,7 +71,10 @@ public class CameraHolder implements Camera.PictureCallback {
         }
     }
 
-    public void setParameters(int width, int height) {
+    public void setParameters(SurfaceTexture surfaceTexture, int width, int height) {
+        if (mCamera == null) {
+            initialize(surfaceTexture);
+        }
         Camera.Parameters param = mCamera.getParameters();
         List<Camera.Size> psize = param.getSupportedPreviewSizes();
         if ( psize.size() > 0 ) {
@@ -93,11 +101,8 @@ public class CameraHolder implements Camera.PictureCallback {
     public void onPictureTaken(byte[] data, Camera camera) {
         camera.startPreview();
 
+        processorThread.setNext(new PictureData(data, faceRect));
 
-        Thread processorThread = new PictureProcessor(data, faceRect);
-        processorThread.start();
-
-        camera.startPreview();
         safeToTakePicture = true;
         camera.startFaceDetection();
         camera.setFaceDetectionListener(renderer);

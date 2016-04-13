@@ -33,11 +33,6 @@ public class CameraSurfaceView extends GLSurfaceView {
 
     private Camera mCamera;
 
-    /**
-     * Do we have a renderer?
-     */
-    private boolean rendererSet = false;
-
     public CameraSurfaceView(Context context, AttributeSet attributeSet) {
         super ( context, attributeSet );
 
@@ -64,7 +59,6 @@ public class CameraSurfaceView extends GLSurfaceView {
 
             // Assign our renderer.
             setRenderer(mRenderer);
-            rendererSet = true;
         } else {
             //Toast.makeText(this, "This device does not support OpenGL ES 2.0.",
             //        Toast.LENGTH_LONG).show();
@@ -80,7 +74,6 @@ public class CameraSurfaceView extends GLSurfaceView {
         if (mCamera != null) {
             mCamera.stopFaceDetection();
             mCamera.release();
-            mCamera = null;
         }
     }
 

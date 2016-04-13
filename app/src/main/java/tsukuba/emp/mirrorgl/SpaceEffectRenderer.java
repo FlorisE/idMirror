@@ -56,7 +56,6 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
 
     private boolean fadeStarted = false;
     private boolean fadeOutStarted = false;
-    private boolean fadeStopped = false;
 
     private ImageView imageView;
 
@@ -104,7 +103,7 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
         glViewport(0, 0, width, height);
 
         if (mCameraHolder != null) {
-            mCameraHolder.setParameters(width, height);
+            mCameraHolder.setParameters(mSTexture, width, height);
 
             mCameraHolder.surfaceChanged();
         }
@@ -174,18 +173,15 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
                 animation.setAnimationListener(new Animation.AnimationListener() {
                     @Override
                     public void onAnimationStart(Animation animation) {
-
                     }
 
                     @Override
                     public void onAnimationEnd(Animation animation) {
                         imageView.setVisibility(View.GONE);
-                        fadeStopped = true;
                     }
 
                     @Override
                     public void onAnimationRepeat(Animation animation) {
-
                     }
                 });
 
@@ -213,12 +209,10 @@ public class SpaceEffectRenderer implements GLSurfaceView.Renderer, SurfaceTextu
 
                         @Override
                         public void onAnimationEnd(Animation animation) {
-                            //fadeOutStopped = true;
                         }
 
                         @Override
                         public void onAnimationRepeat(Animation animation) {
-
                         }
                     });
 
