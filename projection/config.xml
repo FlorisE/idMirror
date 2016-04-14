@@ -1,7 +1,9 @@
 <?xml version="1.0"?>
 <idMirror>
 	<!-- Location where the pictures are stored. On Windows use \\ as seperator -->
-	<pictures>C:\\idMirrorPictures</pictures>
+	<pictures></pictures>
+	<!-- archive folder location -->
+	<archive></archive>
 	<!-- The number the counter should start at -->
 	<counterStart>0</counterStart>
 </idMirror>
